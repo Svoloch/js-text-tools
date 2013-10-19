@@ -61,7 +61,7 @@
 							var current = data[stack[0]];
 							for(var i=0, l=current.length ; i < l ; i++)
 								if((function(re, fn){
-									var match = re(text);
+									var match = re.exec(text);
 									var token = match && match[1];
 									if(token){
 										control.text = token;
