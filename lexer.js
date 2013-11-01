@@ -1,16 +1,18 @@
 ///LGPL
 ///@author Segriy Shatunov
-///@version 0.0.1.1
+///@version 0.0.1.2
 (function(exports){
 	exports.lexer = function(config, options){
 		var NotFound = {};
 		var Reject = {};
 		function Return(val){this.value = val;}
-		options = options || {start:"", forparser:false};///@TODO: rename forparser option
-		var data=(function(config){
-			var data={};
+		options = options || {start:"", forParser:false};
+		if(typeof options.parameterName !== "string")
+			options.parameterName = "STATE"
+		var data = (function(config){
+			var data = {};
 			for(var state in config)
-				data[state]=(function(src){
+				data[state] = (function(src){
 					var a = [], i;
 					for( i = 0 ; i < src.length ; i++ ){
 						var re = src[i][0];
@@ -20,7 +22,7 @@
 						else
 							re = new RegExp("^("+re+")",'m' + re.ignoreCase?"i":"");
 						if(!(fn instanceof Function))
-							fn = new Function("","with(arguments[0]){\n"+fn+"\n};");
+							fn = new Function(options.parameterName, fn);
 						a.push([re, fn]);}
 					return a;})(config[state]);
 			return data;})(config);
@@ -53,11 +55,11 @@
 				if(firstcall && ("before" in options))
 					if(options.before instanceof Function)
 						options.before.call(this, control);
-					else (new Function("", options.before)).call(this, control);
+					else (new Function(options.parameterName, options.before)).call(this, control);
 				firstcall = false;
-				while(text.length > 0){//if(confirm(text))throw text;
+				while(text.length > 0){
 					try{
-						(function (self){
+						(function(self){
 							var current = data[stack[0]];
 							for(var i=0, l=current.length ; i < l ; i++)
 								if((function(re, fn){
@@ -81,14 +83,14 @@
 							if("error" in options)
 								if(options.error instanceof Function)
 									return options.error.call(this, control);
-								else return (new Function("", options.error)).call(this, control);}
+								else return (new Function(options.parameterName, options.error)).call(this, control);}
 						else if(e instanceof Return){
 							return e.value;}
 					throw e;}}
 				if("after" in options)
 					if(options.after instanceof Function)
 						return options.after.call(this, control);
-					else return (new Function("", options.after)).call(this, control);}
+					else return (new Function(options.parameterName, options.after)).call(this, control);}
 		return lex;}
-	return options.forparser ? init : function(txt){return init(txt).call(this);};}///@TODO: rename forparser option
+	return options.forParser ? init : function(txt){return init(txt).call(this);};}
 })(typeof exports!=="undefined"?exports:typeof window!=="undefined"?window:this);
