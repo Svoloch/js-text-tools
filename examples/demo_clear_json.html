@@ -1,0 +1,30 @@
+<html>
+	<head>
+		<script src="../lexer.js"></script>
+		<script src="clear_json.js"></script>
+		<script>
+			window.onload = function(){
+				document.getElementById('run').onclick = function(){
+					document.getElementById('dst').value = clearner(document.getElementById('src').value);
+				}
+			}
+		</script>
+	</head>
+	<body>
+		<table>
+			<tr>
+				<td colspan="2">
+					<button id="run">RUN</button>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<textarea id="src"></textarea>
+				</td>
+				<td>
+					<textarea id="dst"></textarea>
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>
