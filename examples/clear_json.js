@@ -44,8 +44,8 @@
       [/.|\n/, remember]
     ],
     string1: [
-      [/\\\'/, remember],
       [/\\\n/, pass],
+      [/\\./, remember],
       [/\n/,
         function (state) {
           state.output.push("\\n");
@@ -53,7 +53,7 @@
       ],
       [/\t/,
         function (state) {
-          state, output.push("\\t");
+          state.output.push("\\t");
         }
       ],
       [/\'/,
@@ -65,8 +65,8 @@
       [/.|\n/, remember]
     ],
     string2: [
-      [/\\\"/, remember],
       [/\\\n/, pass],
+      [/\\./, remember],
       [/\n/,
         function (state) {
           state.output.push("\\n");
