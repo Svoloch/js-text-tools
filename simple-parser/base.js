@@ -1,12 +1,3 @@
-
-var $L = console.log.bind(console);
-var $J = x=>$L(JSON.stringify(x));
-var $$ = require('readline-sync').question;
-
-if(false){
-    [$L, $J, $$] = [()=>void 0, ()=>void 0, ()=>void 0 ];
-}
-
 var ParseBuffer = function(...a){
     a.constructor = ParseBuffer;
     a.__proto__ = ParseBuffer.prototype;
@@ -30,14 +21,14 @@ var nothing = function*(){
     throw new ParseBuffer(yield null);
 };
 
-var cond = (pred)=>function*(){
+var cond = (pred)=> function*(){
     var char = yield null;
     if(pred(char))
         return new Parsed([char], new ParseBuffer(), [char]);
     else throw new ParseBuffer(char);
 };
 
-var seq2 = (expr0, expr1)=>function*(){
+var seq2 = (expr0, expr1)=> function*(){
     var acc = [], parsed0, parsed1, rest0, rest1, result0, result1;
     [parsed0, rest0, result0] = yield* expr0();
     acc.push(...parsed0);
@@ -47,21 +38,21 @@ var seq2 = (expr0, expr1)=>function*(){
             return new Parsed([...parsed0, ...parsed1], rest1, [...result0, ...result1]);
         }else{
             var gen = expr1();
-            var x = gen.next();
+            var ret = gen.next();
             while(rest0.length){
-                if(x.done){
-                    acc.push(...x.value[0]);
+                if(ret.done){
+                    acc.push(...ret.value[0]);
                     break;
                 }
                 var char = rest0.shift();
-                x = gen.next(char);
+                ret = gen.next(char);
             }
-            if(x.done)
-                [parsed1, rest1, result1] = new Parsed([], new ParseBuffer(), x.value[2]);
+            if(ret.done)
+                [parsed1, rest1, result1] = [[], new ParseBuffer(), ret.value[2]];
             else {
-                while(!x.done)
-                    x = gen.next(yield null);
-                [parsed1, rest1, result1] = x.value;
+                while(!ret.done)
+                    ret = gen.next(yield null);
+                [parsed1, rest1, result1] = ret.value;
             }
             return new Parsed([...acc, ...parsed1], rest1, [...result0, ...result1]);
         }
@@ -72,36 +63,27 @@ var seq2 = (expr0, expr1)=>function*(){
     }
 };
 
-var fork2 = (expr0, expr1)=>function*(){
-    var data, parsed, rest, result, gen;
+var fork2 = (expr0, expr1)=> function*(){
     try{
-        gen = expr0();
-        data = yield* gen;
-        [parsed, rest, result] = data;
-        return [parsed, rest, result];
+        return yield* expr0();
     }catch(ex0){
         if(!(ex0 instanceof ParseBuffer))
             throw ex0;
         try{
-            gen = expr1();
+            var gen = expr1();
             if(ex0.length){
-                var x = gen.next();
+                var ret = gen.next();
                 while(ex0.length){
-                    if(x.done){
-                        return new Parsed(x.value[0], ex0, x.value[2]);
+                    if(ret.done){
+                        return new Parsed(ret.value[0], ex0, ret.value[2]);
                     }
-                    var char = ex0.shift();
-                    x = gen.next(char);
+                    ret = gen.next(ex0.shift());
                 }
-                while(!x.done){
-                    char = yield null;
-                    x = gen.next(char);
-                }
-                return new Parsed(x.value[0], ex0, x.value[2]);
+                while(!ret.done)
+                    ret = gen.next(yield null);
+                return new Parsed(ret.value[0], ex0, ret.value[2]);
             }
-            data = yield* gen;
-            [parsed, rest, result] = data;
-            return Parsed(parsed, rest, result);
+            return yield* gen;
         }catch(ex1){
             if(ex1 instanceof ParseBuffer)
                 throw new ParseBuffer(...ex1, ...ex0);
@@ -110,20 +92,28 @@ var fork2 = (expr0, expr1)=>function*(){
     }
 };
 
-var calc = (expr, fn)=>function*(){
+var calc = (expr, fn)=> function*(){
     var [parsed, rest, result] = yield* expr();
     return new Parsed(parsed, rest, [fn(...result)]);
 };
 
 (()=>{
-    var exports_ = {ParseBuffer, Parsed, empty, nothing, cond, seq2, fork2, calc};
+    var exports_ = {
+        ParseBuffer,
+        Parsed,
+        empty,
+        nothing,
+        cond,
+        seq2,
+        fork2,
+        calc
+    };
     if(module){
         module.exports = exports_;
     }else{
         var GLOBAL = new Function('return this')();
         Object.keys(exports_).forEach(
-            (key)=>
-                GLOBAL[key] = exports_[key]
+            (key)=> GLOBAL[key] = exports_[key]
         );
     }
 })();
